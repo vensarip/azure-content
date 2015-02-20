@@ -19,11 +19,10 @@
 <h2>Introduction</h2>
 
 This article contains step by step instructions on using Capacity
-planner for ASR - Hyper-V Replica. The Capacity Planner for ASR -
-Hyper-V Replica guides the IT administrator in validating network
-connectivity between two sites and in designing the server, storage and
+planner for Azure Site Recovery (ASR) - Hyper-V Replica. The Capacity Planner for ASR -
+Hyper-V Replica guides an IT administrator in designing the server, storage and
 network infrastructure which is required to successfully deploy Hyper-V
-Replica.
+Replica and in validating network connectivity between two sites.
 
 <h2> System requirements </h2>
 
@@ -50,7 +49,7 @@ Replica.
 
 
 1.  Make a list of all Hyper-V virtual machines that will need to be
-    enable for replication and the corresponding primary Hyper-V
+    enabled for replication and the corresponding primary Hyper-V
     hosts/clusters.
 
 2.  Group primary Hyper-V hosts and clusters into one of the following
