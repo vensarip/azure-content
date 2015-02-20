@@ -19,11 +19,10 @@
 <h2>Introduction</h2>
 
 This article contains step by step instructions on using Capacity
-planner for ASR - Hyper-V Replica. The Capacity Planner for ASR -
-Hyper-V Replica guides the IT administrator in validating network
-connectivity between two sites and in designing the server, storage and
+planner for Azure Site Recovery (ASR) - Hyper-V Replica. The Capacity Planner for ASR -
+Hyper-V Replica guides an IT administrator in designing the server, storage and
 network infrastructure which is required to successfully deploy Hyper-V
-Replica.
+Replica and in validating network connectivity between two sites.
 
 <h2> System requirements </h2>
 
@@ -50,7 +49,7 @@ Replica.
 
 
 1.  Make a list of all Hyper-V virtual machines that will need to be
-    enable for replication and the corresponding primary Hyper-V
+    enabled for replication and the corresponding primary Hyper-V
     hosts/clusters.
 
 2.  Group primary Hyper-V hosts and clusters into one of the following
@@ -66,8 +65,10 @@ Replica.
 3.  You would need to run the capacity planner tool once per standalone
     server Group and once for each cluster.
 4.  Enable Remote access to WMI on all primary hosts and clusters.
-    Ensure that the right set of firewall rules (**netsh firewall set
-    service RemoteAdmin enable**) and user permissions are set.
+    Ensure that the right set of firewall rules and user permissions are set.
+		
+		netsh firewall set service RemoteAdmin enable
+ 
 
 5.  Enable Performance monitoring on Primary hosts.
 
@@ -79,6 +80,8 @@ Replica.
         -   All rules in the Remote Event Log Management group
 
 <a name="recovery"></a><h2>Step 2: Recovery site preparation</h2> 
+
+If you are using Azure as the Recovery site or your on-premises Recovery site is not yet ready then this section can be skipped. If you skip this section you won't be able to measure the available bandwidth between the two sites.
 
 1. Identify the authentication method
 
@@ -102,7 +105,7 @@ Replica.
     b.  **Recommended:** Use a single Recovery Hyper-V Host for running
         the tests.
 
-<h3>Prepare a single Recovery Hyper-V Host</h3>
+<h3>Prepare a single Hyper-V Host as Recovery Server</h3>
 
 1.  In Hyper-V Manager, click **Hyper-V Settings** in the
         **Actions** pane.
@@ -122,17 +125,17 @@ Replica.
 5.  If you are using certificate-based authentication, click
         **Select Certificate** and provide the certificate information.
 
-6.  In the **Authorization and storage** section, use the radio
-        buttons to specify whether to allow **any** authenticated
-        (primary) server to send replication data to this Replica server
-        or to limit acceptance to data from specific primary servers.
+6.  In the **Authorization and Storage** section, use the radio
+        button to specify to allow **any** authenticated
+        (primary) server to send replication data to this Replica server.
 
 7.  Click **OK** or **Apply** when you are finished.
 
        ![Hyper-V Settings](./media/hyper-v-recovery-manager-capacity-planner/image1.png)
 
 8.  Validate that the https listener is running by executing
-        “**netsh http show servicestate**”.
+
+		netsh http show servicestate
 
 9.  Open firewall ports
 
@@ -142,7 +145,9 @@ Replica.
         Port 80 (Kerberos): 
 			Enable-Netfirewallrule -displayname "Hyper-V Replica HTTP Listener (TCP-In)"
 
-<h3>Prepare a Recovery Hyper-V Cluster</h3>
+<h3>Prepare a single Hyper-V Cluster as a Recovery target</h3>
+
+If you have already prepared a standalone Hyper-v Host as a Recovery Server then this section can be skipped. 
 
 1.  Configure Hyper-V Replica broker
 		
@@ -212,9 +217,9 @@ Replica.
 <a name="tool"></a><h2>Step 3: Run the tool</h2>
 --------------------
 
-1.  Download and run the [Capacity planner
-    tool](http://go.microsoft.com/?linkid=9876170). It is recommended
-    that the tool is run from one of the primary servers (or one of the
+1.  Download the [Capacity planner tool](http://go.microsoft.com/?linkid=9876170). 
+
+1.  Run the tool from one of the primary servers (or one of the
     nodes from the primary cluster). Right-click on the exe file, and
     choose the **Run as administrator** option.
 
@@ -226,7 +231,7 @@ Replica.
     hours* which ensures that the most representative data is collected.
     The suggested duration for metric collection is 30 minutes. If
     you’re only trying to validate network connectivity, you can choose
-    1 min.
+    1 minunte as duration.
 
     ![Metric Duration](./media/hyper-v-recovery-manager-capacity-planner/image2.png)
 
@@ -235,8 +240,7 @@ Replica.
 
     For a standalone host, enter the server name or FQDN.
 
-    If your Primary host is part of a cluster, you can either enter the
-    FQDN of:
+    If your Primary host is part of a cluster, you can enter FQDN of one of the following:
 
     a.  The Hyper-V Replica Broker Client Access Point (CAP)
 
@@ -249,15 +253,20 @@ Replica.
 5.  Enter **Replica site details** (On-premises site to On-premises
     site replication only)
 
-    If you’re looking to enable replication to Azure, you should skip
+    If you’re looking to enable replication to Azure or you didn't prepare an a Hyper-V Host or Cluster as a Recovery server as explained in **Step-2**, you should skip
     the tests involving the replica site.
 
     Specify the **Replica site** details in this screen and click ‘Next’:
 
 	i.  For a standalone host, enter the server name or FQDN.
 
-	ii. If your Replica host is part of a cluster, enter the FQDN of the
-    Hyper-V Replica Broker Client Access Point (CAP).
+	ii. If your Replica host is part of a cluster, you can enter FQDN of one of the following:
+
+    a.  The Hyper-V Replica Broker Client Access Point (CAP)
+
+    b.  The cluster name
+
+    c.  Any node of the cluster
 
 	   ![Replica Site details](./media/hyper-v-recovery-manager-capacity-planner/image4.png)
 
@@ -265,8 +274,7 @@ Replica.
 6.  Skip tests involving **Extended Replica site**. This is not
     supported by Azure Site Recovery.
 
-7.  **Select the VM’s** to profile: The tool connects to the cluster or
-    standalone servers specified in the ‘Primary Site Details’
+7.  **Select the virtual machines** to profile: The tool connects to the 	cluster or standalone servers specified in the ‘Primary Site Details’
     and enumerates the virtual machines which are running. Select the virtual machines and virtual disks for which the metrics need to be collected.
 
     The following virtual machines will not be enumerated or shown:
@@ -275,17 +283,14 @@ Replica.
 
     b.  Virtual machines that are not running.
 
-8.  Enter **Network information** (On-premises Site to On-premises Site
-    replication only)
+8.  Enter **Network information** (Applicable only to on-premises site to on-premises site replication and when replica site details are provided)
 
     Specify the Network Information requested in this screen and click
     ‘Next’:
 
     a.  Estimated WAN bandwidth
 
-    b.  Certificate to be used for authentication (optional): If
-        certificate based authentication is being used in your Hyper-V
-        Replica environment, you should provide the required
+    b.  Certificate to be used for authentication (optional): If you plan to use certificate based authentication, you should provide the required
         certificates in this page. 
 
     ![Network Information](./media/hyper-v-recovery-manager-capacity-planner/image5.png)
@@ -299,19 +304,20 @@ Replica.
     Report’ to go over the output.
 
     Report location:
-    *"%systemdrive%\\Users\\Public\\Documents\\CapacityPlanner"*
+			
+		%systemdrive%\Users\Public\Documents\CapacityPlanner
 
     Logs location:
-    *"%systemdrive%\\Users\\Public\\Documents\\CapacityPlanner"*
+		
+		%systemdrive%\Users\Public\Documents\CapacityPlanner
 
 <a name="interpret"></a><h2>Step 4: Interpret the results</h2>
 =============================
 
-You can ignore metrics which are not listed below. They are not relevant
-to your scenario.
+You can ignore metrics which are not listed under one of the following two scenarios as they are not relevant for the scenario.
 
-On-premises site to On-premises site replication
-------------------------------------------------
+###On-premises site to On-premises site replication
+
 
 -   Impact of replication on Primary host’s Compute, Memory
 
@@ -326,8 +332,7 @@ On-premises site to On-premises site replication
 -   Suggestion for the ideal number of active parallel transfers between
     the two hosts/clusters
 
-On-premises site to Azure replication
--------------------------------------
+###On-premises site to Azure replication
 
 -   Impact of replication on Primary host’s Compute, Memory
 
@@ -335,5 +340,7 @@ On-premises site to Azure replication
 
 -   Total bandwidth required for delta replication (Mbps)
 
-More detailed guidance on using the tool and interpreting the results
-can be found [here](http://go.microsoft.com/?linkid=9876170).
+A more [detailed guidance on using the ASR capacity planner tool and interpreting the results can be found here](http://go.microsoft.com/?linkid=9876170)
+
+
+
